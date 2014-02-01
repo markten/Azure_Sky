@@ -22,13 +22,13 @@ class Player(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         
         sprite_sheet = Spritesheet("sprites/player.png")
-        image = sprite_sheet.getImage(   0,   0, 132, 44)
+        image = sprite_sheet.getImage(   0,   0, 72, 72)
         self.frames.append(image)
-        image = sprite_sheet.getImage( 132,   0, 132, 44)
+        image = sprite_sheet.getImage( 72,   0, 72, 72)
         self.frames.append(image)
-        image = sprite_sheet.getImage( 264,   0, 132, 44)
+        image = sprite_sheet.getImage( 2*72,   0, 72, 72)
         self.frames.append(image)
-        image = sprite_sheet.getImage( 396,   0, 132, 44)
+        image = sprite_sheet.getImage( 3*72,   0, 72, 72)
         self.frames.append(image)
         
         self.image = self.frames[0]
@@ -49,6 +49,11 @@ class Player(pygame.sprite.Sprite):
             return HP_DAMAGE
         else:
             return DEATH
+            
+    def reset(self):
+        self.current_shields = self.max_shields
+        self.current_hitpoints = self.max_hitpoints
+        
     def update(self):
         if self.direction == -1 and self.rect.x > 0:
             self.rect.x -= self.velocity

@@ -166,6 +166,10 @@ def main():
             
         
         if at_title_screen:
+            all_sprites.remove(bullet_list)
+            bullet_list.remove(bullet_list)
+            player.reset()
+            
             screen.fill(AZURE)
             titletext = font.render("Press Enter to Begin...", True, WHITE)
             screen.blit(titletext, [ 300, 10])
