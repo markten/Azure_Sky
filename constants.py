@@ -23,9 +23,6 @@ HP_DAMAGE = 1
 SHIELD_DAMAGE = 2
 DEATH = 3
 
-### Math constants
-PI = 3.14
-
 ### Timer constants
 STREAM_TIMER = pygame.USEREVENT+1
 CLUSTER_TIMER = pygame.USEREVENT+2

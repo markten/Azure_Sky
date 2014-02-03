@@ -1,12 +1,18 @@
 import pygame
 from constants import *
 import random
-from math import sin, cos
+from math import sin, cos, pi
 
 class Boss(pygame.sprite.Sprite):
     
+    # Movement
     direction = 1
     velocity = 5
+    
+    # Stats
+    max_hitpoints = 500
+    current_hitpoints = 500
+
     
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
@@ -17,6 +23,16 @@ class Boss(pygame.sprite.Sprite):
         self.rect.x = 0
         self.rect.y = 50
         
+    def damage(self):
+        if self.current_hitpoints > 0:
+            self.current_hitpoints -= 1
+            return HP_DAMAGE
+        else:
+            return DEATH
+    
+    def reset(self):
+        self.current_hitpoints = self.max_hitpoints
+    
     def update(self):
         if self.rect.x < 0:
             self.direction = 1
@@ -33,7 +49,7 @@ class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y, x_vect, y_vect):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.image.load("sprites/bullet.png").convert_alpha()
-        self.image.set_colorkey(GREEN)
+        #self.image.set_colorkey(GREEN)
         self.rect = self.image.get_rect()
         
         self.rect.x = x
@@ -50,12 +66,12 @@ def generate_bullet_cluster(x, y):
     
     velocity = 10
     amount = random.randrange(5, 10)
-    d_theta = PI / amount
+    d_theta = pi / amount
     
     new_cluster = pygame.sprite.Group()
     
     for bullet in range(amount):
-        y_vect = velocity * sin(d_theta * bullet)
+        y_vect = velocity * sin(d_theta * bullet) ### DAT TRIG
         x_vect = velocity * cos(d_theta * bullet)
         newBullet = Bullet(x, y, x_vect, y_vect)
         new_cluster.add(newBullet)
@@ -76,3 +92,8 @@ def generate_bullet_stream(x, y):
         new_stream.add(newBullet)
     
     return new_stream
+    
+def generate_player_bullet(x, y):
+    newBullet = Bullet(x, y, 0, -10)
+    return newBullet
+    

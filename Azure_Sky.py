@@ -1,7 +1,8 @@
 import pygame
 from constants import *
 from player import Player
-from enemies import Boss, Bullet, generate_bullet_cluster, generate_bullet_stream
+from enemies import *
+from math import pi
 
 def direct_player(player, ldown, rdown):
     if ldown == True and rdown == True:
@@ -49,14 +50,16 @@ def main():
     bullet_timer = 0
     make_stream = False
     make_cluster = False
-    damage_type = NONE
+    player_damage_type = NONE
+    boss_damage_type = NONE
     
     ### Play music if desired
     GAME_MUSIC = pygame.mixer.Sound("sounds/Rymdkraft_Ultramumie.wav")
     GAME_MUSIC.play()
     
     ### Create Groups
-    bullet_list = pygame.sprite.Group()
+    enemy_bullet_list = pygame.sprite.Group()
+    player_bullet_list = pygame.sprite.Group()
     all_sprites = pygame.sprite.Group()
     
     ### Instantiate sprites
@@ -78,6 +81,9 @@ def main():
                 if event.key == pygame.K_RETURN:
                     playing_game = True
                     at_title_screen = False
+                if event.key == pygame.K_SPACE:
+                    player_bullet_list.add(generate_player_bullet(player.rect.centerx, player.rect.centery))
+                    all_sprites.add(player_bullet_list)
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_LEFT:
                     ldown = False
@@ -95,30 +101,38 @@ def main():
             #
             if make_cluster == True:
                 temp_group = generate_bullet_cluster(boss.rect.centerx, boss.rect.centery)
-                bullet_list.add(temp_group)
+                enemy_bullet_list.add(temp_group)
                 all_sprites.add(temp_group)
                 
             if make_stream == True:
                 temp_group = generate_bullet_stream(boss.rect.centerx, boss.rect.centery)
-                bullet_list.add(temp_group)
+                enemy_bullet_list.add(temp_group)
                 all_sprites.add(temp_group)
             
             #
-            temp_group = check_bullet_age(bullet_list)
-            bullet_list.remove(temp_group)
+            temp_group = check_bullet_age(enemy_bullet_list)
+            enemy_bullet_list.remove(temp_group)
             all_sprites.remove(temp_group)
             
-            #
-            bullet_collision_list = pygame.sprite.spritecollide(player, bullet_list, True)
+            # Player Collisions
+            bullet_collision_list = pygame.sprite.spritecollide(player, enemy_bullet_list, True)
             for bullet in bullet_collision_list:
-                damage_type = player.damage()
+                player_damage_type = player.damage()
             
-            #
-            
-            if damage_type == DEATH:
+            # Boss Collisions
+            bullet_collision_list = pygame.sprite.spritecollide(boss, player_bullet_list, True)
+            for bullet in bullet_collision_list:
+                boss_damage_type = boss.damage()
+ 
+            if player_damage_type == DEATH:
                 playing_game = False
                 at_title_screen = True
-                print("Player has Died")
+                print("Player died")
+            
+            if boss_damage_type == DEATH:
+                playering_game = False
+                at_title_screen = True
+                print("You Win: The boss was defeated")
             
             direct_player(player, ldown, rdown)
             all_sprites.update()
@@ -141,14 +155,17 @@ def main():
             hptext = font.render("Health: " + str(player.current_hitpoints), True, WHITE)
             screen.blit(hptext, [ 300, 10])
             
+            bosshptext = font.render("Boss Health: " + str(boss.current_hitpoints), True, WHITE)
+            screen.blit(bosshptext, [ 400, 10])
+            
             # Draw Sprites
             all_sprites.draw(screen)
             
             # Draw shields
-            if damage_type == SHIELD_DAMAGE:
-                pygame.draw.arc(screen, BLUE, [ player.rect.x, player.rect.y, player.rect.w, player.rect.h],  0, PI, 2)
-            if damage_type == HP_DAMAGE:
-                pygame.draw.arc(screen, RED, [ player.rect.x, player.rect.y, player.rect.w, player.rect.h],  0, PI, 1)
+            if player_damage_type == SHIELD_DAMAGE:
+                pygame.draw.arc(screen, BLUE, [ player.rect.x, player.rect.y, player.rect.w, player.rect.h],  0, pi, 2)
+            if player_damage_type == HP_DAMAGE:
+                pygame.draw.arc(screen, RED, [ player.rect.x, player.rect.y, player.rect.w, player.rect.h],  0, pi, 1)
             
             # Update display
             pygame.display.flip()
@@ -156,7 +173,8 @@ def main():
             ### End drawing screen
             
             score += 1
-            damage_type = NONE
+            player_damage_type = NONE
+            boss_damage_type = NONE
             bullet_timer += 1
             make_stream = False
             make_cluster = False
@@ -166,9 +184,12 @@ def main():
             
         
         if at_title_screen:
-            all_sprites.remove(bullet_list)
-            bullet_list.remove(bullet_list)
+            all_sprites.remove(enemy_bullet_list)
+            all_sprites.remove(player_bullet_list)
+            enemy_bullet_list.remove(enemy_bullet_list)
+            player_bullet_list.remove(player_bullet_list)
             player.reset()
+            boss.reset()
             
             screen.fill(AZURE)
             titletext = font.render("Press Enter to Begin...", True, WHITE)
